@@ -25,29 +25,77 @@ public class ImcServlet extends HttpServlet {
             String p = request.getParameter("poids");  // Récupérer le poids
             String t = request.getParameter("taille"); // Récupérer la taille
 
-            // Convertir les valeurs en double
-            float poids = Float.parseFloat(p);
-            float taille = Float.parseFloat(t);
-            
-            Imc imc = new Imc(taille,poids);
+            // Validate input
+            if (p == null || t == null || p.isEmpty() || t.isEmpty()) {
+                out.println("<h3>Erreur: Veuillez entrer un poids et une taille valides.</h3>");
+                return;
+            }
 
-            // Afficher les résultats
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<meta charset='UTF-8'>");
-            out.println("<title>Résultat IMC</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("Poids: " + imc.poids + " kg<br>");
-            out.println("Taille: " + imc.taille + " m<br>");
-            out.println("IMC: " + imc.calcul() + "<br>");
-            out.println("</body>");
-            out.println("</html>");
+            try {
+                // Convertir les valeurs en double
+                float poids = Float.parseFloat(p);
+                float taille = Float.parseFloat(t);
+
+                // Ensure that taille and poids are positive values
+                if (poids <= 0 || taille <= 0) {
+                    out.println("<h3>Erreur: Le poids et la taille doivent être des valeurs positives.</h3>");
+                    return;
+                }
+
+                Imc imc = new Imc(taille, poids);
+
+                // Afficher les résultats
+                out.println("<!DOCTYPE html>");
+                out.println("<html>");
+                out.println("<head>");
+                out.println("<meta charset='UTF-8'>");
+                out.println("<title>Résultat IMC</title>");
+                out.println("</head>");
+                out.println("<body>");
+                out.println("<h2>Résultat IMC</h2>");
+                out.println("<p>Poids: " + imc.poids + " kg</p>");
+                out.println("<p>Taille: " + imc.taille + " m</p>");
+                out.println("<p>IMC: " + imc.calcul() + "</p>");
+                
+                // Optional: Display IMC categories
+                String category = imc.getCategory();
+                out.println("<p>Catégorie: " + category + "</p>");
+                out.println("</body>");
+                out.println("</html>");
+            } catch (NumberFormatException e) {
+                out.println("<h3>Erreur: Veuillez entrer des nombres valides pour le poids et la taille.</h3>");
+            }
         }
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doGet(request, response);
+    }
+}
+
+class Imc {
+    float taille;
+    float poids;
+
+    public Imc(float taille, float poids) {
+        this.taille = taille;
+        this.poids = poids;
+    }
+
+    public float calcul() {
+        return poids / (taille * taille);
+    }
+
+    public String getCategory() {
+        float imc = calcul();
+        if (imc < 18.5) {
+            return "Insuffisance pondérale";
+        } else if (imc < 24.9) {
+            return "Poids normal";
+        } else if (imc < 29.9) {
+            return "Surpoids";
+        } else {
+            return "Obésité";
+        }
     }
 }
